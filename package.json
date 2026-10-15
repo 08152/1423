@@ -1,0 +1,16 @@
+{
+  "name": "island-drop-battle-royale",
+  "version": "1.4.0",
+  "private": true,
+  "type": "module",
+  "description": "Browser 3D island battle royale with Render WebSocket matchmaking for two remote players.",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "ws": "^8.18.3"
+  }
+}

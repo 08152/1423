@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <meta name="theme-color" content="#081723">
+  <title>ISLAND DROP — Battle Royale</title>
+  <link rel="stylesheet" href="./style.css">
+  <script type="importmap">
+    {"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"}}
+  </script>
+</head>
+<body>
+  <canvas id="game-canvas" aria-label="3D-Spielwelt"></canvas>
+
+  <section id="lobby" class="screen lobby-screen">
+    <div class="lobby-topbar">
+      <div class="brand-mark"><span class="brand-symbol">◆</span><div><b>ISLAND DROP</b><small>LAST CREW STANDING</small></div></div>
+      <div class="profile-panel"><span class="profile-square">1</span><div><b>LEVEL 1</b><small>0 / 1.000 XP</small></div></div>
+      <button id="settings-button" class="icon-button" aria-label="Einstellungen" title="Einstellungen">⚙</button>
+    </div>
+    <div class="lobby-left">
+      <p class="eyebrow">NEUE INSEL. NEUE REGELN.</p>
+      <h1>SPRING<br><span>INS ABENTEUER.</span></h1>
+      <p class="lobby-copy">Eine riesige Insel. Ein Militärflugzeug. Dein eigener Landeplatz.</p>
+      <div class="lobby-stats"><div><b>100</b><small>LEBEN</small></div><i></i><div><b>50</b><small>SCHILD</small></div><i></i><div><b>1</b><small>INSEL</small></div></div>
+      <button id="play-button" class="play-button"><span class="play-icon">▶</span><span><b>SPIELEN</b><small>MIT MATCHMAKING</small></span></button>
+      <div class="queue-status" id="queue-status"><span class="status-dot"></span><span id="queue-copy">Bereit zum Start</span></div>
+    </div>
+    <div class="lobby-bottom">
+      <div class="lobby-tip"><b>INSEL-FUNK</b><span>Erkunde die Insel, finde Beute und deinen eigenen Landeplatz.</span></div>
+      <div class="lobby-quicklinks"><span>SOLO-LOOK</span><span>·</span><span>FIRST PERSON</span><span>·</span><span>2 SPIELER</span></div>
+    </div>
+    <div id="settings-panel" class="settings-panel hidden">
+      <button id="settings-close" class="panel-close" aria-label="Schließen">×</button>
+      <h2>EINSTELLUNGEN</h2>
+      <label class="setting-row"><span>Grafikqualität</span><select id="quality-select"><option value="high">Hoch</option><option value="medium">Mittel</option><option value="low">Leistung</option></select></label>
+      <label class="setting-row"><span>Mouse Sensitivity</span><input id="sensitivity-slider" type="range" min="0.4" max="2.2" step="0.1" value="1"></label>
+      <p>Steuerung: WASD bewegen · Shift sprinten · Maus umsehen · M Karte · E halten · Leertaste abspringen/springen · R nachladen · 1–5 Slots</p>
+    </div>
+  </section>
+
+  <div id="queue-screen" class="screen queue-screen hidden">
+    <div class="queue-card">
+      <div class="loading-ring"><span>◆</span></div>
+      <p class="eyebrow">MATCHMAKING</p>
+      <h2>SPIELER WERDEN GESUCHT</h2>
+      <div class="players-count"><span id="players-count">1</span><span class="count-slash">/</span><span>2</span></div>
+      <p id="queue-detail">Warte auf einen zweiten Spieler …</p>
+      <p class="local-note">Online-Matchmaking über Render: Öffne dieselbe veröffentlichte Spieladresse auf zwei PCs und drücke auf beiden „SPIELEN“. Der Server verbindet euch zu einem Zwei-Spieler-Match.</p>
+      <button id="cancel-queue" class="secondary-button">ZURÜCK ZUR LOBBY</button>
+    </div>
+  </div>
+
+  <div id="map-screen" class="map-screen hidden" aria-label="Große Inselkarte">
+    <div class="map-topbar"><div><b>INSELKARTE</b><small>WÄHLE DEINEN PUNKT</small></div><div class="map-actions"><span id="map-marker-count">0 MARKIERUNGEN</span><button id="delete-marker" class="map-action-button" disabled>MARKIERUNG LÖSCHEN</button><button id="close-map" class="map-action-button bright">SCHLIESSEN [M]</button></div></div>
+    <div class="map-image-wrap"><img id="large-map-image" src="./island-map.jpeg" alt="Karte der Insel mit Gebieten"><div id="large-map-pins" class="map-pins"></div></div>
+    <div class="map-help"><span>● KLICKEN = MARKIEREN</span><span>● PUNKT WÄHLEN = LÖSCHEN</span><span>● M = ZURÜCK</span></div>
+  </div>
+
+  <div id="hud" class="hud hidden">
+    <div class="hud-top-left"><div class="mode-chip"><span class="status-dot"></span> ISLAND DROP <small>· MATCH</small></div></div>
+    <div class="minimap-frame"><div class="minimap-title">INSELKARTE <span>LIVE</span></div><div id="minimap" class="minimap"><img src="./island-map.jpeg" alt="Minikarte"><div id="minimap-pins" class="map-pins"></div><div id="player-map-dot" class="player-map-dot"><span></span></div></div><div class="minimap-footer"><span id="zone-name">INSEL</span><span id="coords-readout">X 000 · Z 000</span></div></div>
+    <div id="storm-status" class="storm-status"><span class="storm-dot"></span><b>STURM</b><span id="storm-readout">ZONE WIRD VORBEREITET</span></div>
+    <div class="crosshair" id="crosshair"><i></i><i></i><i></i><i></i><b></b></div>
+    <div id="sprint-meter" class="sprint-meter"><div class="sprint-label"><span>SPRINT</span><b id="sprint-value">100%</b></div><div class="sprint-track"><div id="sprint-fill"></div></div></div>
+    <div class="hud-bottom-left"><div class="status-number"><span>+</span><b id="health-value">100</b></div><div class="health-bar"><div id="health-fill" style="width:100%"></div></div><div class="shield-row"><div class="shield-number"><span>◆</span><b id="shield-value">50</b></div><div class="shield-bar"><div id="shield-fill" style="width:100%"></div></div></div></div>
+    <div class="inventory-strip" id="inventory-strip">
+      <div class="inventory-slot active" data-slot="1"><small>1</small><span>✦</span><em>∞</em></div>
+      <div class="inventory-slot" data-slot="2"><small>2</small><span>▰</span><em>5/25</em></div>
+      <div class="inventory-slot" data-slot="3"><small>3</small><span>⌁</span><em>10/60</em></div>
+      <div class="inventory-slot" data-slot="4"><small>4</small><span>✚</span><em>3</em></div>
+      <div class="inventory-slot" data-slot="5"><small>5</small><span>□</span><em>—</em></div>
+    </div>
+    <div class="weapon-readout" id="weapon-readout">SPITZHACKE <span>UNBEGRENZT</span></div>
+    <div id="chest-prompt" class="chest-prompt hidden"><div class="hold-ring"><svg viewBox="0 0 48 48"><circle class="ring-bg" cx="24" cy="24" r="19"></circle><circle id="hold-ring-progress" class="ring-progress" cx="24" cy="24" r="19"></circle></svg><b>E</b></div><div><strong>GEDRÜCKT HALTEN</strong><small>TRUHE ÖFFNEN</small></div></div>
+    <div id="toast" class="toast"></div>
+    <div id="pointer-hint" class="pointer-hint">KLICKEN, UM DIE MAUS ZU AKTIVIEREN</div>
+    <div class="hud-controls">WASD BEWEGEN <span>·</span> SHIFT SPRINT <span>·</span> LMB FEUERN <span>·</span> RMB ZIELEN <span>·</span> R NACHLADEN <span>·</span> M KARTE</div>
+  </div>
+
+  <div id="sequence-caption" class="sequence-caption hidden"></div>
+  <div id="black-fade" class="black-fade"></div>
+  <script type="module" src="./main.js"></script>
+</body>
+</html>
